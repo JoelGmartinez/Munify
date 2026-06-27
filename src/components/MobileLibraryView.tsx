@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Music2, ListMusic, Trash2, Edit3, Check, X, Heart, Clock, Headphones } from 'lucide-react';
+import { Plus, Music2, ListMusic, Trash2, Edit3, Check, X, Heart, Clock, Headphones, RotateCw, Folder } from 'lucide-react';
 import { usePlayerStore } from '../store/playerStore';
 import { useTracks } from '../utils/useTracks';
 import { Playlist } from '../types';
@@ -48,6 +48,21 @@ export default function MobileLibraryView() {
         <h1 className="text-3xl font-black text-[#1a1a1a] mb-2">Tu Biblioteca</h1>
         <p className="text-[#666666] text-sm">{playlists.length} playlists</p>
       </div>
+
+      {/* Folder indicator / rescan */}
+      {usePlayerStore.getState().directoryPath && (
+        <div className="mx-6 mb-4 flex items-center gap-2 px-4 py-2.5 rounded-lg bg-[#fce4ec] border border-[#e91e63]/20">
+          <Folder size={16} className="text-[#e91e63] flex-shrink-0" />
+          <span className="text-sm text-[#1a1a1a] truncate flex-1">{usePlayerStore.getState().directoryPath}</span>
+          <button
+            onClick={() => usePlayerStore.getState().rescanFolder()}
+            className="p-1.5 rounded-full hover:bg-[#e91e63]/10 text-[#e91e63] transition-colors"
+            title="Rescanear carpeta"
+          >
+            <RotateCw size={15} />
+          </button>
+        </div>
+      )}
 
       <div className="px-6 pb-4">
         {/* Library quick links */}

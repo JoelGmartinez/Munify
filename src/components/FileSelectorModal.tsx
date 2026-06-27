@@ -1,5 +1,5 @@
 import { useRef, useState, useCallback } from 'react';
-import { X, Upload, Music, CheckCircle, AlertCircle, Loader, FolderOpen } from 'lucide-react';
+import { X, Upload, Music, CheckCircle, AlertCircle, Loader, FolderOpen, Folder } from 'lucide-react';
 import { usePlayerStore } from '../store/playerStore';
 import { parseAudioFile } from '../lib/metadataParser';
 
@@ -132,13 +132,40 @@ export default function FileSelectorModal() {
         <div className="p-6 space-y-4">
           {uploadState.status === 'idle' || uploadState.status === 'error' ? (
             <>
+              {/* Current folder indicator */}
+              {usePlayerStore.getState().directoryPath && (
+                <div className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-[#fce4ec] text-sm text-[#1a1a1a] border border-[#e91e63]/20">
+                  <Folder size={16} className="text-[#e91e63] flex-shrink-0" />
+                  <span className="flex-1 truncate">{usePlayerStore.getState().directoryPath}</span>
+                  <span className="text-[#e91e63] text-xs font-semibold flex-shrink-0">Sincronizada</span>
+                </div>
+              )}
+
+              {/* Folder Picker (Android Chrome) */}
+              <button
+                onClick={() => { usePlayerStore.getState().pickMusicFolder(); setShowUploadModal(false); }}
+                className="w-full py-4 px-6 rounded-xl bg-gradient-to-r from-[#e91e63] to-[#ff4081] transition-all text-white font-bold text-lg flex items-center justify-center gap-3 shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98]"
+              >
+                <Folder size={24} />
+                Seleccionar carpeta de música
+              </button>
+
+              <div className="relative my-4">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-black/10" />
+                </div>
+                <div className="relative flex justify-center text-xs">
+                  <span className="bg-white px-3 text-[#999999]">o elige archivos individuales</span>
+                </div>
+              </div>
+
               {/* File System API Button */}
               <button
                 onClick={handleFilePickerAPI}
-                className="w-full py-4 px-6 rounded-xl bg-[#e91e63] hover:bg-[#ff4081] transition-colors text-white font-bold text-lg flex items-center justify-center gap-3"
+                className="w-full py-3 px-6 rounded-xl bg-[#f5f5f5] hover:bg-[#fce4ec] transition-colors text-[#1a1a1a] font-semibold text-base flex items-center justify-center gap-3 border border-black/10"
               >
-                <FolderOpen size={24} />
-                Seleccionar archivos locales
+                <FolderOpen size={20} />
+                Seleccionar archivos
               </button>
 
               {/* Drop Zone */}

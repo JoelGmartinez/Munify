@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Home, Heart, Clock, Plus, Music2, ListMusic, ChevronRight, Trash2, Edit2, Check, X, List } from 'lucide-react';
+import { Home, Heart, Clock, Plus, Music2, ListMusic, ChevronRight, Trash2, Edit2, Check, X, List, RotateCw } from 'lucide-react';
 import { usePlayerStore } from '../store/playerStore';
 import { formatDuration } from '../lib/metadataParser';
 import { useTracks } from '../utils/useTracks';
@@ -182,6 +182,19 @@ export default function Sidebar() {
           </div>
         )}
       </div>
+      {usePlayerStore.getState().directoryPath && (
+        <div className="border-t border-black/5 px-4 py-2 flex items-center gap-2">
+          <Music2 size={12} className="text-[#e91e63]" />
+          <span className="text-xs text-[#666666] truncate flex-1">{usePlayerStore.getState().directoryPath}</span>
+          <button
+            onClick={() => usePlayerStore.getState().rescanFolder()}
+            className="p-1 rounded hover:bg-black/5 text-[#666666] hover:text-[#e91e63] transition-colors"
+            title="Rescanear carpeta"
+          >
+            <RotateCw size={13} />
+          </button>
+        </div>
+      )}
     </aside>
   );
 }

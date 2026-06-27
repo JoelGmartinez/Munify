@@ -16,7 +16,7 @@ import MobileLibraryView from './components/MobileLibraryView';
 import { Menu, X } from 'lucide-react';
 
 export default function App() {
-  const { loadLibrary, currentView, showUploadModal, showQueue, searchQuery, isLoading } = usePlayerStore();
+  const { loadLibrary, currentView, showUploadModal, showQueue, searchQuery, isLoading, isSyncing } = usePlayerStore();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const searchInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -114,6 +114,14 @@ export default function App() {
           </div>
         </main>
       </div>
+
+      {/* Syncing indicator */}
+      {isSyncing && (
+        <div className="flex items-center justify-center gap-2 py-1.5 bg-[#e91e63] text-white text-xs font-semibold">
+          <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
+          Sincronizando biblioteca...
+        </div>
+      )}
 
       {/* Player Bar */}
       <PlayerBar />

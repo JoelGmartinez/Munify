@@ -24,13 +24,17 @@ interface MunifyDB extends DBSchema {
     key: string;
     value: StoredFileHandle;
   };
+  directoryHandles: {
+    key: string;
+    value: { id: string; handle: FileSystemDirectoryHandle };
+  };
 }
 
 let db: IDBPDatabase<MunifyDB> | null = null;
 
 export async function getDB(): Promise<IDBPDatabase<MunifyDB>> {
 
-  db = await openDB<MunifyDB>('munify-db', 3, {
+  db = await openDB<MunifyDB>('munify-db', 4, {
     upgrade(database, oldVersion) {
       if (oldVersion < 1) {
         database.createObjectStore('tracks', { keyPath: 'id' })
@@ -42,6 +46,9 @@ export async function getDB(): Promise<IDBPDatabase<MunifyDB>> {
       }
       if (oldVersion < 3) {
         database.createObjectStore('fileHandles', { keyPath: 'trackId' });
+      }
+      if (oldVersion < 4) {
+        database.createObjectStore('directoryHandles', { keyPath: 'id' });
       }
     },
   });
@@ -189,4 +196,26 @@ export async function getAllFileHandles(): Promise<StoredFileHandle[]> {
 export async function deleteFileHandle(trackId: string): Promise<void> {
   const database = await getDB();
   await database.delete('fileHandles', trackId);
+}
+
+// ---- Directory Handles (auto-scan folders) ----
+export async function saveDirectoryHandle(id: string, handle: FileSystemDirectoryHandle): Promise<void> {
+  const database = await getDB();
+  await database.put('directoryHandles', { id, handle });
+}
+
+export async function getDirectoryHandle(id: string): Promise<FileSystemDirectoryHandle | undefined> {
+  const database = await getDB();
+  const entry = await database.get('directoryHandles', id);
+  return entry?.handle;
+}
+
+export async function getDirectoryHandles(): Promise<{ id: string; handle: FileSystemDirectoryHandle }[]> {
+  const database = await getDB();
+  return database.getAll('directoryHandles');
+}
+
+export async function deleteDirectoryHandle(id: string): Promise<void> {
+  const database = await getDB();
+  await database.delete('directoryHandles', id);
 }

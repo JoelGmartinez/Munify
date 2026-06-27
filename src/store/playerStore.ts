@@ -1,7 +1,8 @@
 import { create } from 'zustand';
 import { Track, Playlist, RepeatMode } from '../types';
 import { IndexedDBRepository } from '../lib/repository';
-import { getAllFileHandles, saveFileHandle, deleteFileHandle, getAudioBlob, getFileHandle } from '../lib/db';
+import { getAllFileHandles, saveFileHandle, deleteFileHandle, getAudioBlob, getFileHandle, getDirectoryHandles, saveDirectoryHandle, deleteDirectoryHandle } from '../lib/db';
+import { parseAudioFile } from '../lib/metadataParser';
 
 function shuffleArray<T>(arr: T[]): T[] {
   const a = [...arr];
@@ -47,8 +48,13 @@ interface PlayerStore {
   showUploadModal: boolean;
   showQueue: boolean;
   searchQuery: string;
+  isSyncing: boolean;
+  directoryPath: string | null;
 
   loadLibrary: () => Promise<void>;
+  pickMusicFolder: () => Promise<void>;
+  rescanFolder: () => Promise<void>;
+  clearMusicFolder: () => Promise<void>;
   addPlaylist: (playlist: Playlist, items: TrackInput[]) => Promise<void>;
   removePlaylist: (id: string) => Promise<void>;
   toggleLike: (trackId: string) => Promise<void>;
@@ -105,14 +111,17 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
   showUploadModal: false,
   showQueue: false,
   searchQuery: '',
+  isSyncing: false,
+  directoryPath: null,
 
   loadLibrary: async () => {
     set({ isLoading: true });
     try {
-      const [playlists, tracks, storedHandles] = await Promise.all([
+      const [playlists, tracks, storedHandles, dirHandles] = await Promise.all([
         IndexedDBRepository.getAllPlaylists(),
         IndexedDBRepository.getAllTracks(),
         getAllFileHandles(),
+        getDirectoryHandles(),
       ]);
       const playlistTrackIds: Record<string, string[]> = {};
       const withPlaylist = tracks.filter(t => t.playlistId)
@@ -136,18 +145,189 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
         }
       }
 
+      // Restore directory handle and auto-scan
+      let directoryPath: string | null = null;
+      if (dirHandles.length > 0) {
+        const dirEntry = dirHandles[0];
+        try {
+          const permission = await dirEntry.handle.requestPermission({ mode: 'read' });
+          if (permission === 'granted') {
+            directoryPath = dirEntry.handle.name;
+            // Schedule background scan
+            setTimeout(() => get().rescanFolder(), 100);
+          }
+        } catch {
+          await deleteDirectoryHandle(dirEntry.id);
+        }
+      }
+
       set({
         playlists,
         trackEntities: toEntities(tracks),
         trackIds: tracks.map(t => t.id),
         playlistTrackIds,
         localFileMap,
+        directoryPath,
         isLoading: false,
       });
     } catch (e) {
       console.error('Failed to load library:', e);
       set({ isLoading: false });
     }
+  },
+
+  pickMusicFolder: async () => {
+    try {
+      if (!('showDirectoryPicker' in window)) {
+        set({ showUploadModal: true });
+        return;
+      }
+      const dirHandle = await (window as any).showDirectoryPicker();
+      const permission = await dirHandle.requestPermission({ mode: 'read' });
+      if (permission !== 'granted') return;
+
+      await saveDirectoryHandle('music', dirHandle);
+      set({ directoryPath: dirHandle.name });
+      await get().rescanFolder();
+    } catch (err: any) {
+      if (err.name === 'AbortError' || err.name === 'SecurityError') return;
+      console.error('Failed to pick folder:', err);
+    }
+  },
+
+  rescanFolder: async () => {
+    const state = get();
+    set({ isSyncing: true });
+    try {
+      const dirHandles = await getDirectoryHandles();
+      if (dirHandles.length === 0) { set({ isSyncing: false }); return; }
+
+      const dirHandle = dirHandles[0].handle;
+      const permission = await dirHandle.requestPermission({ mode: 'read' });
+      if (permission !== 'granted') { set({ isSyncing: false }); return; }
+
+      const existing = state.trackEntities;
+      const existingMap = new Map<string, { track: Track; file: File }>();
+
+      // Build map of existing local tracks by filename for dedup
+      for (const tid of state.trackIds) {
+        const t = existing[tid];
+        if (t?.isLocal) {
+          const key = `${t.artist}|${t.album}|${t.title}`;
+          existingMap.set(key, { track: t, file: state.localFileMap[tid] });
+        }
+      }
+
+      const AUDIO_EXTS = new Set(['.mp3', '.wav', '.flac', '.ogg', '.m4a', '.aac', '.opus', '.wma']);
+
+      async function walkDir(handle: FileSystemDirectoryHandle): Promise<File[]> {
+        const files: File[] = [];
+        for await (const entry of (handle as any).values()) {
+          if (entry.kind === 'file') {
+            const name = entry.name.toLowerCase();
+            if (AUDIO_EXTS.has(name.slice(name.lastIndexOf('.')))) {
+              try {
+                const file = await (entry as FileSystemFileHandle).getFile();
+                files.push(file);
+              } catch { /* skip */ }
+            }
+          } else if (entry.kind === 'directory') {
+            const sub = await walkDir(entry as FileSystemDirectoryHandle);
+            files.push(...sub);
+          }
+        }
+        return files;
+      }
+
+      const scannedFiles = await walkDir(dirHandle);
+      const newFiles: File[] = [];
+      const stillValid = new Set<string>();
+
+      for (const file of scannedFiles) {
+        const cleanName = file.name.replace(/\.[^/.]+$/, '').replace(/^\d+[\s.\-_]+/, '').trim();
+        let matched = false;
+        for (const [key, entry] of existingMap) {
+          if (entry.file && entry.file.name === file.name && entry.file.size === file.size) {
+            stillValid.add(entry.track.id);
+            matched = true;
+            break;
+          }
+        }
+        if (!matched) {
+          // Also match by cleaned name as fallback
+          let fallbackMatch = false;
+          for (const entry of existingMap.values()) {
+            if (entry.file && entry.file.name === file.name) {
+              fallbackMatch = true;
+              break;
+            }
+          }
+          if (!fallbackMatch) {
+            newFiles.push(file);
+          } else {
+            // File with same name exists, just update the file reference
+            for (const entry of existingMap.values()) {
+              if (entry.file && entry.file.name === file.name) {
+                stillValid.add(entry.track.id);
+                break;
+              }
+            }
+          }
+        }
+      }
+
+      // Remove tracks whose files no longer exist
+      const toRemove: string[] = [];
+      for (const [key, entry] of existingMap) {
+        if (!stillValid.has(entry.track.id)) {
+          toRemove.push(entry.track.id);
+        }
+      }
+
+      // Import new files
+      if (newFiles.length > 0) {
+        const items: { track: import('../types').Track; file: File; handle?: FileSystemFileHandle }[] = [];
+        for (const file of newFiles) {
+          try {
+            const { track } = await parseAudioFile(file);
+            items.push({ track: { ...track, isLocal: true }, file });
+          } catch (e) {
+            console.error('Error parsing', file.name, e);
+          }
+        }
+        if (items.length > 0) {
+          await get().addLocalTracks(items);
+        }
+      }
+
+      // Remove orphaned tracks
+      for (const id of toRemove) {
+        try {
+          await IndexedDBRepository.deleteTrack(id);
+          await deleteFileHandle(id);
+        } catch { /* ignore */ }
+      }
+
+      if (toRemove.length > 0) {
+        const { trackEntities, trackIds, localFileMap } = get();
+        const newEntities = { ...trackEntities };
+        const newIds = trackIds.filter(id => !toRemove.includes(id));
+        const newLocalFiles = { ...localFileMap };
+        for (const id of toRemove) {
+          delete newEntities[id];
+          delete newLocalFiles[id];
+        }
+        set({ trackEntities: newEntities, trackIds: newIds, localFileMap: newLocalFiles });
+      }
+    } catch (e) {
+      console.error('Failed to scan folder:', e);
+    }
+    set({ isSyncing: false });
+  },
+
+  clearMusicFolder: async () => {
+    await deleteDirectoryHandle('music');
+    set({ directoryPath: null });
   },
 
   addPlaylist: async (playlist, items) => {
