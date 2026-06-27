@@ -150,6 +150,10 @@ export default function FileSelectorModal() {
                 Seleccionar carpeta de música
               </button>
 
+              <p className="text-xs text-[#999999] text-center -mt-2">
+                Android pedirá permiso para acceder a los archivos. Solo se guardan los metadatos, la música se reproduce directamente desde tu disco.
+              </p>
+
               <div className="relative my-4">
                 <div className="absolute inset-0 flex items-center">
                   <div className="w-full border-t border-black/10" />
@@ -214,6 +218,7 @@ export default function FileSelectorModal() {
                 <div className="text-xs text-[#666666]">
                   <p className="font-medium text-[#e91e63] mb-1">Sin copia al navegador</p>
                   <p>La música se reproduce directamente desde tu disco. Solo se guardan los metadatos (título, artista, carátula) para organizar tus playlists.</p>
+                  <p className="mt-1">Al elegir una carpeta, la app se sincroniza automáticamente: las canciones nuevas aparecen solas y las eliminadas desaparecen.</p>
                 </div>
               </div>
             </>
