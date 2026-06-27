@@ -66,10 +66,10 @@ export default function Sidebar() {
     <aside className="flex flex-col bg-white h-full w-full overflow-hidden border-r border-black/5">
       <div className="px-6 py-5">
         <div className="flex items-center gap-2">
-          <div className="p-2 bg-[#e91e63] rounded-lg">
+          <div className="p-2 bg-accent rounded-lg">
             <Music2 size={20} className="text-white" />
           </div>
-          <span className="text-[#1a1a1a] font-black text-xl tracking-tight">Munify</span>
+          <span className="text-main font-black text-xl tracking-tight">Munify</span>
         </div>
       </div>
 
@@ -80,11 +80,11 @@ export default function Sidebar() {
             onClick={() => setView(id as any)}
             className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-colors ${
               currentView === id && !activePlaylistId
-                ? 'bg-[#fce4ec] text-[#e91e63]'
-                : 'text-[#666666] hover:text-[#1a1a1a] hover:bg-black/5'
+                ? 'bg-accent-surface text-accent'
+                : 'text-muted hover:text-main hover:bg-black/5'
             }`}
           >
-            <Icon size={20} className={currentView === id && !activePlaylistId ? 'text-[#e91e63]' : ''} />
+            <Icon size={20} className={currentView === id && !activePlaylistId ? 'text-accent' : ''} />
             {label}
           </button>
         ))}
@@ -92,13 +92,13 @@ export default function Sidebar() {
 
       <div className="flex-1 overflow-hidden flex flex-col min-h-0">
         <div className="flex items-center justify-between px-5 py-3">
-          <div className="flex items-center gap-2 text-[#666666]">
+          <div className="flex items-center gap-2 text-muted">
             <ListMusic size={18} />
             <span className="text-sm font-semibold">Tu Biblioteca</span>
           </div>
           <button
             onClick={() => setCreating(!creating)}
-            className="p-1.5 rounded-full hover:bg-black/5 transition-colors text-[#666666] hover:text-[#1a1a1a]"
+            className="p-1.5 rounded-full hover:bg-black/5 transition-colors text-muted hover:text-main"
             title="Crear playlist"
           >
             <Plus size={18} />
@@ -110,17 +110,17 @@ export default function Sidebar() {
             <input autoFocus value={newName} onChange={e => setNewName(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter') handleCreate(); if (e.key === 'Escape') { setCreating(false); setNewName(''); } }}
               placeholder="Nombre de la playlist"
-              className="bg-black/5 text-[#1a1a1a] text-sm px-2 py-1.5 rounded w-full outline-none border border-[#e91e63] placeholder:text-[#999999]" />
-            <button onClick={handleCreate} className="text-[#e91e63] p-1"><Check size={16} /></button>
-            <button onClick={() => { setCreating(false); setNewName(''); }} className="text-[#666666] p-1"><X size={16} /></button>
+              className="bg-black/5 text-main text-sm px-2 py-1.5 rounded w-full outline-none border border-accent placeholder:text-subtle" />
+            <button onClick={handleCreate} className="text-accent p-1"><Check size={16} /></button>
+            <button onClick={() => { setCreating(false); setNewName(''); }} className="text-muted p-1"><X size={16} /></button>
           </div>
         )}
 
         {playlists.length === 0 && !creating ? (
-          <div className="mx-3 p-4 rounded-xl bg-[#f5f5f5]">
-            <p className="text-[#1a1a1a] text-sm font-bold mb-1">Crea tu primera playlist</p>
-            <p className="text-[#666666] text-xs mb-3">Es fácil, te ayudaremos</p>
-            <button onClick={() => setCreating(true)} className="px-4 py-2 bg-[#e91e63] text-white text-xs font-bold rounded-full hover:scale-105 transition-transform">
+          <div className="mx-3 p-4 rounded-xl bg-surface">
+            <p className="text-main text-sm font-bold mb-1">Crea tu primera playlist</p>
+            <p className="text-muted text-xs mb-3">Es fácil, te ayudaremos</p>
+            <button onClick={() => setCreating(true)} className="px-4 py-2 bg-accent text-white text-xs font-bold rounded-full hover:scale-105 transition-transform">
               + Crear Playlist
             </button>
           </div>
@@ -133,7 +133,7 @@ export default function Sidebar() {
               const gradClass = getGradientClass(pl.color);
               return (
                 <div key={pl.id}
-                  className={`group flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer transition-colors ${isActive ? 'bg-[#fce4ec]' : 'hover:bg-black/5'}`}
+                  className={`group flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer transition-colors ${isActive ? 'bg-accent-surface' : 'hover:bg-black/5'}`}
                   onClick={() => setView('playlist', pl.id)}>
                   <div className="flex-shrink-0 w-10 h-10 rounded overflow-hidden relative">
                     {pl.coverUrl ? (
@@ -154,27 +154,27 @@ export default function Sidebar() {
                       <div className="flex items-center gap-1" onClick={e => e.stopPropagation()}>
                         <input autoFocus value={editing.name} onChange={e => setEditing({ ...editing, name: e.target.value })}
                           onKeyDown={e => { if (e.key === 'Enter') handleRename(); if (e.key === 'Escape') setEditing(null); }}
-                          className="bg-black/5 text-[#1a1a1a] text-sm px-2 py-0.5 rounded w-full outline-none border border-[#e91e63]" />
-                        <button onClick={handleRename} className="text-[#e91e63] p-0.5"><Check size={14} /></button>
-                        <button onClick={() => setEditing(null)} className="text-[#666666] p-0.5"><X size={14} /></button>
+                          className="bg-black/5 text-main text-sm px-2 py-0.5 rounded w-full outline-none border border-accent" />
+                        <button onClick={handleRename} className="text-accent p-0.5"><Check size={14} /></button>
+                        <button onClick={() => setEditing(null)} className="text-muted p-0.5"><X size={14} /></button>
                       </div>
                     ) : (
-                      <p className={`text-sm font-semibold truncate ${isActive ? 'text-[#e91e63]' : 'text-[#1a1a1a]'}`}>{pl.name}</p>
+                      <p className={`text-sm font-semibold truncate ${isActive ? 'text-accent' : 'text-main'}`}>{pl.name}</p>
                     )}
-                    <p className="text-xs text-[#666666] truncate">Playlist • {trackCount} canciones</p>
+                    <p className="text-xs text-muted truncate">Playlist • {trackCount} canciones</p>
                   </div>
                   <div className="hidden group-hover:flex items-center gap-1" onClick={e => e.stopPropagation()}>
                     <button onClick={() => setEditing({ id: pl.id, name: pl.name })}
-                      className="p-1.5 rounded-full hover:bg-black/5 text-[#666666] hover:text-[#1a1a1a] transition-colors" title="Renombrar">
+                      className="p-1.5 rounded-full hover:bg-black/5 text-muted hover:text-main transition-colors" title="Renombrar">
                       <Edit2 size={13} />
                     </button>
                     <button onClick={() => removePlaylist(pl.id)}
-                      className="p-1.5 rounded-full hover:bg-red-500/10 text-[#666666] hover:text-red-400 transition-colors" title="Eliminar">
+                      className="p-1.5 rounded-full hover:bg-red-500/10 text-muted hover:text-red-400 transition-colors" title="Eliminar">
                       <Trash2 size={13} />
                     </button>
                   </div>
                   {!editing && (
-                    <ChevronRight size={14} className="text-[#999999] group-hover:text-[#666666] transition-colors flex-shrink-0" />
+                    <ChevronRight size={14} className="text-subtle group-hover:text-muted transition-colors flex-shrink-0" />
                   )}
                 </div>
               );
@@ -184,11 +184,11 @@ export default function Sidebar() {
       </div>
       {usePlayerStore.getState().directoryPath && (
         <div className="border-t border-black/5 px-4 py-2 flex items-center gap-2">
-          <Music2 size={12} className="text-[#e91e63]" />
-          <span className="text-xs text-[#666666] truncate flex-1">{usePlayerStore.getState().directoryPath}</span>
+          <Music2 size={12} className="text-accent" />
+          <span className="text-xs text-muted truncate flex-1">{usePlayerStore.getState().directoryPath}</span>
           <button
             onClick={() => usePlayerStore.getState().rescanFolder()}
-            className="p-1 rounded hover:bg-black/5 text-[#666666] hover:text-[#e91e63] transition-colors"
+            className="p-1 rounded hover:bg-black/5 text-muted hover:text-accent transition-colors"
             title="Rescanear carpeta"
           >
             <RotateCw size={13} />
@@ -203,7 +203,7 @@ function NowPlayingBars() {
   return (
     <div className="flex items-end gap-[2px] h-3">
       {[1, 2, 3].map(i => (
-        <div key={i} className="w-[3px] bg-[#e91e63] rounded-sm animate-pulse"
+        <div key={i} className="w-[3px] bg-accent rounded-sm animate-pulse"
           style={{ height: `${40 + i * 20}%`, animationDelay: `${i * 0.15}s`, animationDuration: `${0.6 + i * 0.1}s` }} />
       ))}
     </div>

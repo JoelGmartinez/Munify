@@ -120,10 +120,10 @@ export default function FileSelectorModal() {
       <div className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden border border-black/10">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-5 border-b border-black/10">
-          <h2 className="text-[#1a1a1a] font-bold text-xl">Añadir Música Local</h2>
+          <h2 className="text-main font-bold text-xl">Añadir Música Local</h2>
           <button
             onClick={() => setShowUploadModal(false)}
-            className="p-2 rounded-full hover:bg-black/5 transition-colors text-[#666666] hover:text-[#1a1a1a]"
+            className="p-2 rounded-full hover:bg-black/5 transition-colors text-muted hover:text-main"
           >
             <X size={20} />
           </button>
@@ -134,23 +134,23 @@ export default function FileSelectorModal() {
             <>
               {/* Current folder indicator */}
               {usePlayerStore.getState().directoryPath && (
-                <div className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-[#fce4ec] text-sm text-[#1a1a1a] border border-[#e91e63]/20">
-                  <Folder size={16} className="text-[#e91e63] flex-shrink-0" />
+                <div className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-accent-surface text-sm text-main border border-accent/20">
+                  <Folder size={16} className="text-accent flex-shrink-0" />
                   <span className="flex-1 truncate">{usePlayerStore.getState().directoryPath}</span>
-                  <span className="text-[#e91e63] text-xs font-semibold flex-shrink-0">Sincronizada</span>
+                  <span className="text-accent text-xs font-semibold flex-shrink-0">Sincronizada</span>
                 </div>
               )}
 
               {/* Folder Picker (Android Chrome) */}
               <button
                 onClick={() => { usePlayerStore.getState().pickMusicFolder(); setShowUploadModal(false); }}
-                className="w-full py-4 px-6 rounded-xl bg-gradient-to-r from-[#e91e63] to-[#ff4081] transition-all text-white font-bold text-lg flex items-center justify-center gap-3 shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98]"
+                className="w-full py-4 px-6 rounded-xl bg-gradient-to-r from-accent to-accent-light transition-all text-white font-bold text-lg flex items-center justify-center gap-3 shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98]"
               >
                 <Folder size={24} />
                 Seleccionar carpeta de música
               </button>
 
-              <p className="text-xs text-[#999999] text-center -mt-2">
+              <p className="text-xs text-subtle text-center -mt-2">
                 Android pedirá permiso para acceder a los archivos. Solo se guardan los metadatos, la música se reproduce directamente desde tu disco.
               </p>
 
@@ -159,14 +159,14 @@ export default function FileSelectorModal() {
                   <div className="w-full border-t border-black/10" />
                 </div>
                 <div className="relative flex justify-center text-xs">
-                  <span className="bg-white px-3 text-[#999999]">o elige archivos individuales</span>
+                  <span className="bg-white px-3 text-subtle">o elige archivos individuales</span>
                 </div>
               </div>
 
               {/* File System API Button */}
               <button
                 onClick={handleFilePickerAPI}
-                className="w-full py-3 px-6 rounded-xl bg-[#f5f5f5] hover:bg-[#fce4ec] transition-colors text-[#1a1a1a] font-semibold text-base flex items-center justify-center gap-3 border border-black/10"
+                className="w-full py-3 px-6 rounded-xl bg-surface hover:bg-accent-surface transition-colors text-main font-semibold text-base flex items-center justify-center gap-3 border border-black/10"
               >
                 <FolderOpen size={20} />
                 Seleccionar archivos
@@ -180,21 +180,21 @@ export default function FileSelectorModal() {
                 className={`
                   relative border-2 border-dashed rounded-xl p-10 text-center transition-all cursor-pointer
                   ${isDragging
-                    ? 'border-[#e91e63] bg-[#e91e63]/10'
+                    ? 'border-accent bg-accent/10'
                     : 'border-black/20 hover:border-black/40 hover:bg-black/5'
                   }
                 `}
                 onClick={() => fileInputRef.current?.click()}
               >
                 <div className="flex flex-col items-center gap-3">
-                  <div className={`p-4 rounded-full transition-colors ${isDragging ? 'bg-[#e91e63]/20' : 'bg-black/5'}`}>
-                    <Upload size={32} className={isDragging ? 'text-[#e91e63]' : 'text-[#666666]'} />
+                  <div className={`p-4 rounded-full transition-colors ${isDragging ? 'bg-accent/20' : 'bg-black/5'}`}>
+                    <Upload size={32} className={isDragging ? 'text-accent' : 'text-muted'} />
                   </div>
                   <div>
-                    <p className="text-[#1a1a1a] font-semibold text-lg">Arrastra tus archivos aquí</p>
-                    <p className="text-[#666666] text-sm mt-1">o haz clic para seleccionar</p>
+                    <p className="text-main font-semibold text-lg">Arrastra tus archivos aquí</p>
+                    <p className="text-muted text-sm mt-1">o haz clic para seleccionar</p>
                   </div>
-                  <p className="text-xs text-[#999999]">MP3, FLAC, WAV, M4A, OGG, AAC y más</p>
+                  <p className="text-xs text-subtle">MP3, FLAC, WAV, M4A, OGG, AAC y más</p>
                 </div>
                 <input
                   ref={fileInputRef}
@@ -213,10 +213,10 @@ export default function FileSelectorModal() {
                 </div>
               )}
 
-              <div className="flex items-start gap-3 p-3 rounded-lg bg-[#e91e63]/10 border border-[#e91e63]/20">
-                <Music size={16} className="text-[#e91e63] flex-shrink-0 mt-0.5" />
-                <div className="text-xs text-[#666666]">
-                  <p className="font-medium text-[#e91e63] mb-1">Sin copia al navegador</p>
+              <div className="flex items-start gap-3 p-3 rounded-lg bg-accent/10 border border-accent/20">
+                <Music size={16} className="text-accent flex-shrink-0 mt-0.5" />
+                <div className="text-xs text-muted">
+                  <p className="font-medium text-accent mb-1">Sin copia al navegador</p>
                   <p>La música se reproduce directamente desde tu disco. Solo se guardan los metadatos (título, artista, carátula) para organizar tus playlists.</p>
                   <p className="mt-1">Al elegir una carpeta, la app se sincroniza automáticamente: las canciones nuevas aparecen solas y las eliminadas desaparecen.</p>
                 </div>
@@ -226,20 +226,20 @@ export default function FileSelectorModal() {
             <div className="py-8 space-y-6">
               <div className="flex flex-col items-center gap-3">
                 <div className="relative">
-                  <Loader size={48} className="text-[#e91e63] animate-spin" />
+                  <Loader size={48} className="text-accent animate-spin" />
                 </div>
-                <p className="text-[#1a1a1a] font-semibold text-lg">Procesando música...</p>
-                <p className="text-[#666666] text-sm text-center truncate max-w-xs">{uploadState.currentFile}</p>
+                <p className="text-main font-semibold text-lg">Procesando música...</p>
+                <p className="text-muted text-sm text-center truncate max-w-xs">{uploadState.currentFile}</p>
               </div>
 
               <div className="space-y-2">
-                <div className="flex justify-between text-xs text-[#666666]">
+                <div className="flex justify-between text-xs text-muted">
                   <span>{uploadState.current} de {uploadState.total} canciones</span>
                   <span>{Math.round(progress)}%</span>
                 </div>
                 <div className="h-2 bg-black/10 rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-[#e91e63] rounded-full transition-all duration-300"
+                    className="h-full bg-accent rounded-full transition-all duration-300"
                     style={{ width: `${progress}%` }}
                   />
                 </div>
@@ -247,9 +247,9 @@ export default function FileSelectorModal() {
             </div>
           ) : (
             <div className="py-8 flex flex-col items-center gap-4">
-              <CheckCircle size={56} className="text-[#e91e63]" />
-              <p className="text-[#1a1a1a] font-bold text-xl">¡Música añadida!</p>
-              <p className="text-[#666666] text-sm">{uploadState.total} canciones importadas correctamente</p>
+              <CheckCircle size={56} className="text-accent" />
+              <p className="text-main font-bold text-xl">¡Música añadida!</p>
+              <p className="text-muted text-sm">{uploadState.total} canciones importadas correctamente</p>
             </div>
           )}
         </div>

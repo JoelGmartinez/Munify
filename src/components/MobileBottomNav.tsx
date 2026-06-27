@@ -55,7 +55,7 @@ export default function MobileBottomNav({ searchInputRef }: Props) {
           key={tab.id}
           onClick={tab.action}
           className={`flex flex-col items-center gap-0.5 py-1 px-4 rounded-lg transition-colors ${
-            activeTab === tab.id ? 'text-[#e91e63]' : 'text-[#999999]'
+            activeTab === tab.id ? 'text-accent' : 'text-subtle'
           }`}
         >
           <tab.icon size={20} />

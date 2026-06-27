@@ -123,6 +123,141 @@ function parseID3v2(buffer: ArrayBuffer): ID3Tags {
   return tags;
 }
 
+// --- FLAC / Vorbis Comments Parser ---
+
+function readUint32LE(bytes: Uint8Array, offset: number): number {
+  return bytes[offset] | (bytes[offset + 1] << 8) | (bytes[offset + 2] << 16) | (bytes[offset + 3] << 24);
+}
+
+function readUint32BE(bytes: Uint8Array, offset: number): number {
+  return (bytes[offset] << 24) | (bytes[offset + 1] << 16) | (bytes[offset + 2] << 8) | bytes[offset + 3];
+}
+
+function findByte(bytes: Uint8Array, b: number): number {
+  for (let i = 0; i < bytes.length; i++) {
+    if (bytes[i] === b) return i;
+  }
+  return -1;
+}
+
+function parsePictureBlock(data: Uint8Array): { data: Uint8Array; mime: string } | null {
+  if (data.length < 8) return null;
+  let pos = 0;
+
+  // picture_type (uint32 BE) — skip
+  pos += 4;
+
+  const mimeLen = readUint32BE(data, pos); pos += 4;
+  if (pos + mimeLen > data.length) return null;
+  const mime = new TextDecoder('ascii').decode(data.slice(pos, pos + mimeLen));
+  pos += mimeLen;
+
+  const descLen = readUint32BE(data, pos); pos += 4;
+  pos += descLen; // skip description
+
+  pos += 4; // skip width
+  pos += 4; // skip height
+  pos += 4; // skip color_depth
+  pos += 4; // skip colors_used
+
+  const picLen = readUint32BE(data, pos); pos += 4;
+  if (pos + picLen > data.length) return null;
+  const picData = data.slice(pos, pos + picLen);
+  if (picData.length === 0) return null;
+
+  return { data: picData, mime };
+}
+
+function parseFLACTags(buffer: ArrayBuffer): ID3Tags {
+  const tags: ID3Tags = {};
+  const bytes = new Uint8Array(buffer);
+
+  // FLAC marker: 'fLaC'
+  if (bytes[0] !== 0x66 || bytes[1] !== 0x4C || bytes[2] !== 0x61 || bytes[3] !== 0x43) return tags;
+
+  let offset = 4;
+
+  while (offset < bytes.length - 4) {
+    const header = bytes[offset];
+    const isLast = (header & 0x80) !== 0;
+    const blockType = header & 0x7F;
+    const blockLength = (bytes[offset + 1] << 16) | (bytes[offset + 2] << 8) | bytes[offset + 3];
+    offset += 4;
+
+    if (offset + blockLength > bytes.length) break;
+    const blockData = bytes.slice(offset, offset + blockLength);
+
+    if (blockType === 4) {
+      // VORBIS_COMMENT
+      let pos = 0;
+
+      const vendorLen = readUint32LE(blockData, pos); pos += 4;
+      pos += vendorLen; // skip vendor string
+
+      const numComments = readUint32LE(blockData, pos); pos += 4;
+
+      for (let i = 0; i < numComments && pos + 4 <= blockData.length; i++) {
+        const commentLen = readUint32LE(blockData, pos); pos += 4;
+        if (pos + commentLen > blockData.length) break;
+
+        const commentBytes = blockData.slice(pos, pos + commentLen);
+        pos += commentLen;
+
+        const eqIdx = findByte(commentBytes, 0x3D); // '='
+        if (eqIdx === -1) continue;
+
+        const keyBytes = commentBytes.slice(0, eqIdx);
+        const valueBytes = commentBytes.slice(eqIdx + 1);
+        const key = new TextDecoder('ascii').decode(keyBytes).toUpperCase();
+
+        if (key === 'METADATA_BLOCK_PICTURE') {
+          // Picture stored as binary inside Vorbis comment
+          const pic = parsePictureBlock(valueBytes);
+          if (pic) tags.cover = pic;
+        } else {
+          const value = new TextDecoder('utf-8').decode(valueBytes);
+          switch (key) {
+            case 'TITLE': tags.title = value; break;
+            case 'ARTIST': tags.artist = value; break;
+            case 'ALBUM': tags.album = value; break;
+            case 'DATE': tags.year = value.slice(0, 4); break;
+            case 'GENRE': tags.genre = value; break;
+            case 'TRACKNUMBER': tags.track = value.split('/')[0].trim(); break;
+          }
+        }
+      }
+    } else if (blockType === 6) {
+      // METADATA_BLOCK_PICTURE (FLAC native picture block)
+      const pic = parsePictureBlock(blockData);
+      if (pic) tags.cover = pic;
+    }
+
+    offset += blockLength;
+    if (isLast) break;
+  }
+
+  return tags;
+}
+
+async function readFileTags(file: File): Promise<ID3Tags> {
+  try {
+    const blob = file.slice(0, 512 * 1024);
+    const buffer = await blob.arrayBuffer();
+
+    // Try ID3v2 first (MP3 and other formats with ID3 headers)
+    const id3 = parseID3v2(buffer);
+    if (id3.title || id3.artist || id3.album) return id3;
+
+    // Try FLAC Vorbis comments
+    const flac = parseFLACTags(buffer);
+    if (flac.title || flac.artist || flac.album) return flac;
+
+    return id3;
+  } catch {
+    return {};
+  }
+}
+
 function imageToDataUrl(data: Uint8Array, mime: string): string {
   let binary = '';
   for (let i = 0; i < data.length; i++) {
@@ -159,7 +294,7 @@ function getAudioDuration(file: File): Promise<number> {
   });
 }
 
-function cleanFileName(name: string): string {
+export function cleanFileName(name: string): string {
   return name.replace(/\.[^/.]+$/, '').replace(/^\d+[\s.\-_]+/, '').trim();
 }
 
@@ -177,7 +312,7 @@ export async function parseAudioFile(
   playlistId?: string
 ): Promise<{ track: Track; blob: Blob }> {
   const [tags, duration] = await Promise.all([
-    readID3Tags(file),
+    readFileTags(file),
     getAudioDuration(file),
   ]);
 

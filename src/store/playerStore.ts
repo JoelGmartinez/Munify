@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { Track, Playlist, RepeatMode } from '../types';
 import { IndexedDBRepository } from '../lib/repository';
 import { getAllFileHandles, saveFileHandle, deleteFileHandle, getAudioBlob, getFileHandle, getDirectoryHandles, saveDirectoryHandle, deleteDirectoryHandle } from '../lib/db';
-import { parseAudioFile } from '../lib/metadataParser';
+import { parseAudioFile, cleanFileName } from '../lib/metadataParser';
 
 function shuffleArray<T>(arr: T[]): T[] {
   const a = [...arr];
@@ -130,16 +130,10 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
         playlistTrackIds[t.playlistId!].push(t.id);
       }
 
-      // No restoration of localFileMap here — that caused mass permission prompts.
-      // The directory-handle approach handles file access lazily on play.
-
-      // Restore directory handle and schedule background scan
+      // Load tracks into store first so rescanFolder can match them
       let directoryPath: string | null = null;
       if (dirHandles.length > 0) {
-        const dirEntry = dirHandles[0];
-        directoryPath = dirEntry.handle.name;
-        // Schedule background scan after render
-        setTimeout(() => get().rescanFolder(), 300);
+        directoryPath = dirHandles[0].handle.name;
       }
 
       set({
@@ -149,8 +143,14 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
         playlistTrackIds,
         localFileMap: {},
         directoryPath,
-        isLoading: false,
       });
+
+      // Scan folder synchronously to populate localFileMap before user can play
+      if (dirHandles.length > 0) {
+        await get().rescanFolder();
+      }
+
+      set({ isLoading: false });
     } catch (e) {
       console.error('Failed to load library:', e);
       set({ isLoading: false });
@@ -188,13 +188,24 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
 
       const state = get();
 
-      // Map existing local tracks by their stored file-name (fast, no disk I/O)
+      // Map existing local tracks by stored fileName, with fallback by cleaned name
       const existingByName = new Map<string, Track>();
+      const existingByStem = new Map<string, Track[]>();
       for (const tid of state.trackIds) {
         const t = state.trackEntities[tid];
         if (t?.isLocal) {
           const fileName = (t as any)._fileName as string | undefined;
-          if (fileName) existingByName.set(fileName, t);
+          if (fileName) {
+            existingByName.set(fileName, t);
+          } else {
+            // Migration: old tracks without _fileName — index by cleaned title
+            const stem = t.title.toLowerCase().trim();
+            if (stem) {
+              const arr = existingByStem.get(stem) || [];
+              arr.push(t);
+              existingByStem.set(stem, arr);
+            }
+          }
         }
       }
 
@@ -222,33 +233,44 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
 
       await walkDir(dirHandle);
 
-      // Build set of scanned filenames for quick lookup
-      const scannedNames = new Set(scanned.map(e => e.fileName));
+      // Match scanned files to existing tracks (by _fileName first, then by title)
+      const matchedIds = new Set<string>();
+      const newLocalFiles: Record<string, File> = {};
+      let imported = 0;
 
-      // Tracks still present on disk (matched by name)
-      const stillValid = new Set(
-        [...existingByName.entries()]
-          .filter(([name]) => scannedNames.has(name))
-          .map(([, t]) => t.id)
-      );
+      for (const entry of scanned) {
+        let existing = existingByName.get(entry.fileName);
 
-      // Tracks whose files are gone → remove
-      const toRemove = [...existingByName.values()]
-        .filter(t => !stillValid.has(t.id))
-        .map(t => t.id);
+        // Fallback: try matching old tracks (no _fileName) by cleaned title
+        if (!existing) {
+          const fileStem = cleanFileName(entry.fileName).toLowerCase();
+          const matches = existingByStem.get(fileStem) || [];
+          // Pick the first unmatched one
+          existing = matches.find(t => !matchedIds.has(t.id)) || null;
+          if (existing) {
+            // Migrate: store _fileName for future scans
+            (existing as any)._fileName = entry.fileName;
+            try {
+              await IndexedDBRepository.saveTrack(existing, null);
+            } catch {}
+          }
+        }
 
-      // New entries (not in existingByName)
-      const newEntries = scanned.filter(e => !existingByName.has(e.fileName));
-
-      // Import new tracks
-      if (newEntries.length > 0) {
-        let imported = 0;
-        for (const entry of newEntries) {
+        if (existing) {
+          // Existing track — get the live File reference
+          matchedIds.add(existing.id);
+          try {
+            const file = await entry.handle.getFile();
+            newLocalFiles[existing.id] = file;
+          } catch {
+            // skip if file can't be read
+          }
+        } else {
+          // New track — import it
           try {
             const file = await entry.handle.getFile();
             const { track } = await parseAudioFile(file);
             const localTrack: Track = { ...track, isLocal: true };
-            // Store the original filename for future matching
             (localTrack as any)._fileName = entry.fileName;
 
             await IndexedDBRepository.saveTrack(localTrack, null);
@@ -258,17 +280,28 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
             set({
               trackEntities: { ...s.trackEntities, [localTrack.id]: localTrack },
               trackIds: [...s.trackIds, localTrack.id],
-              localFileMap: { ...s.localFileMap, [localTrack.id]: file },
             });
+            newLocalFiles[localTrack.id] = file;
+            matchedIds.add(localTrack.id);
             imported++;
           } catch (e) {
             console.error('Error importing', entry.fileName, e);
           }
         }
+      }
+
+      // Batch-update localFileMap
+      set(s => ({ localFileMap: { ...s.localFileMap, ...newLocalFiles } }));
+
+      if (imported > 0) {
         console.log(`[rescan] imported ${imported} new tracks`);
       }
 
-      // Remove orphaned tracks from DB
+      // Remove local tracks whose files are no longer on disk
+      const toRemove = [...existingByName.values()]
+        .filter(t => !matchedIds.has(t.id))
+        .map(t => t.id);
+
       for (const id of toRemove) {
         try {
           await IndexedDBRepository.deleteTrack(id);
@@ -280,12 +313,12 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
         const s = get();
         const newEntities = { ...s.trackEntities };
         const newIds = s.trackIds.filter(id => !toRemove.includes(id));
-        const newLocalFiles = { ...s.localFileMap };
+        const removedLocalFiles = { ...s.localFileMap };
         for (const id of toRemove) {
           delete newEntities[id];
-          delete newLocalFiles[id];
+          delete removedLocalFiles[id];
         }
-        set({ trackEntities: newEntities, trackIds: newIds, localFileMap: newLocalFiles });
+        set({ trackEntities: newEntities, trackIds: newIds, localFileMap: removedLocalFiles });
       }
     } catch (e) {
       console.error('Failed to scan folder:', e);
@@ -422,7 +455,8 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
       for (const { track, file, handle } of items) {
         const namedTrack = { ...track, isLocal: true };
         (namedTrack as any)._fileName = file.name;
-        await IndexedDBRepository.saveTrack(namedTrack, null);
+        // Save blob so uploaded tracks survive page reload
+        await IndexedDBRepository.saveTrack(namedTrack, file);
         if (handle) {
           await saveFileHandle(track.id, handle);
         }
@@ -449,7 +483,7 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
   getFileForTrack: async (trackId) => {
     const state = get();
 
-    // 1. Already in memory
+    // 1. Already in memory (from rescanFolder)
     if (state.localFileMap[trackId]) return state.localFileMap[trackId];
 
     // 2. Try saved FileSystemFileHandle
@@ -465,43 +499,37 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
       } catch { /* handle invalid */ }
     }
 
-    // 3. Fallback: try to find file by walking the directory handle
-    const dirEntries = await getDirectoryHandles();
-    if (dirEntries.length > 0) {
-      const dir = dirEntries[0].handle;
-      try {
-        const perm = await dir.requestPermission({ mode: 'read' });
-        if (perm === 'granted') {
-          async function findFile(d: FileSystemDirectoryHandle, targetId: string): Promise<File | null> {
-            for await (const entry of (d as any).values()) {
-              if (entry.kind === 'file') {
-                const fh = entry as FileSystemFileHandle;
-                try {
-                  const f = await fh.getFile();
-                  // Check if this file belongs to the track by matching file handle
-                  const savedHandle = await getFileHandle(targetId);
-                  if (savedHandle) {
-                    const savedPerm = await savedHandle.requestPermission({ mode: 'read' });
-                    if (savedPerm === 'granted') {
-                      const savedFile = await savedHandle.getFile();
-                      if (savedFile.name === f.name && savedFile.size === f.size) {
-                        set(s => ({ localFileMap: { ...s.localFileMap, [targetId]: f } }));
-                        return f;
-                      }
-                    }
-                  }
-                } catch { /* skip */ }
-              } else if (entry.kind === 'directory') {
-                const found = await findFile(entry as FileSystemDirectoryHandle, targetId);
-                if (found) return found;
+    // 3. Walk directory to find file by _fileName (if available)
+    const track = state.trackEntities[trackId];
+    const targetName = (track as any)?._fileName as string | undefined;
+
+    if (targetName) {
+      const dirEntries = await getDirectoryHandles();
+      if (dirEntries.length > 0) {
+        const dir = dirEntries[0].handle;
+        try {
+          const perm = await dir.requestPermission({ mode: 'read' });
+          if (perm === 'granted') {
+            async function walkDir(d: FileSystemDirectoryHandle): Promise<File | null> {
+              for await (const entry of (d as any).values()) {
+                if (entry.kind === 'file' && entry.name === targetName) {
+                  try {
+                    const f = await (entry as FileSystemFileHandle).getFile();
+                    set(s => ({ localFileMap: { ...s.localFileMap, [trackId]: f } }));
+                    return f;
+                  } catch { return null; }
+                } else if (entry.kind === 'directory') {
+                  const found = await walkDir(entry as FileSystemDirectoryHandle);
+                  if (found) return found;
+                }
               }
+              return null;
             }
-            return null;
+            const found = await walkDir(dir);
+            if (found) return found;
           }
-          const found = await findFile(dir, trackId);
-          if (found) return found;
-        }
-      } catch { /* dir handle invalid */ }
+        } catch { /* dir handle invalid */ }
+      }
     }
 
     // 4. Try blob from IndexedDB

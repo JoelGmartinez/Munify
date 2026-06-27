@@ -15,31 +15,31 @@ const TrackRow = memo(function TrackRow({
   return (
     <div
       onClick={onPlay}
-      className={`group flex items-center gap-4 px-4 py-2 rounded-lg cursor-pointer transition-colors w-full ${isCurrent ? 'bg-[#fce4ec]' : 'hover:bg-black/5'}`}
+      className={`group flex items-center gap-4 px-4 py-2 rounded-lg cursor-pointer transition-colors w-full ${isCurrent ? 'bg-accent-surface' : 'hover:bg-black/5'}`}
     >
-      <div className="w-5 text-center">
-        <span className={`text-sm group-hover:hidden ${isCurrent ? 'text-[#e91e63]' : 'text-[#666666]'}`}>{index + 1}</span>
-        <button onClick={(e) => { e.stopPropagation(); onPlay(); }} className="hidden group-hover:flex text-[#1a1a1a]">
+      <div className="max-md:hidden w-5 text-center">
+        <span className={`text-sm group-hover:hidden ${isCurrent ? 'text-accent' : 'text-muted'}`}>{index + 1}</span>
+        <button onClick={(e) => { e.stopPropagation(); onPlay(); }} className="hidden group-hover:flex text-main">
           <Play size={14} fill="currentColor" />
         </button>
       </div>
       <div className="w-10 h-10 rounded flex-shrink-0 overflow-hidden">
         {track.coverUrl
           ? <img src={track.coverUrl} alt={track.title} className="w-full h-full object-cover" />
-          : <div className="w-full h-full bg-[#f5f5f5] flex items-center justify-center"><Music2 size={14} className="text-[#999999]" /></div>
+          : <div className="w-full h-full bg-surface flex items-center justify-center"><Music2 size={14} className="text-subtle" /></div>
         }
       </div>
       <div className="flex-1 min-w-0">
-        <p className={`text-sm font-semibold truncate ${isCurrent ? 'text-[#e91e63]' : 'text-[#1a1a1a]'}`}>{track.title}</p>
-        <p className="text-xs text-[#666666] truncate">{track.artist} • {track.album}</p>
+        <p className={`text-sm font-semibold truncate ${isCurrent ? 'text-accent' : 'text-main'}`}>{track.title}</p>
+        <p className="text-xs text-muted truncate">{track.artist} • {track.album}</p>
       </div>
-      <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100">
+      <div className="max-md:hidden flex items-center gap-2 opacity-0 group-hover:opacity-100">
         <button onClick={(e) => { e.stopPropagation(); onLike(); }}
-          className={`p-1.5 rounded-full hover:bg-black/5 ${track.isLiked ? 'text-[#e91e63]' : 'text-[#666666]'}`}>
+          className={`p-1.5 rounded-full hover:bg-black/5 ${track.isLiked ? 'text-accent' : 'text-muted'}`}>
           <Heart size={14} fill={track.isLiked ? 'currentColor' : 'none'} />
         </button>
       </div>
-      <span className="text-xs text-[#666666] tabular-nums flex-shrink-0">{formatDuration(track.duration)}</span>
+      <span className="max-md:hidden text-xs text-muted tabular-nums flex-shrink-0">{formatDuration(track.duration)}</span>
     </div>
   );
 });
@@ -84,25 +84,25 @@ export default function SearchView({ query }: { query: string }) {
 
   return (
     <div ref={scrollRef} className="flex-1 overflow-y-auto px-6 py-6">
-      <h2 className="text-[#1a1a1a] font-bold text-xl mb-4">Resultados para "<span className="text-[#e91e63]">{query}</span>"</h2>
+      <h2 className="text-main font-bold text-xl mb-4">Resultados para "<span className="text-accent">{query}</span>"</h2>
 
       {matchedPlaylists.length > 0 && (
         <section className="mb-8">
-          <h3 className="text-[#1a1a1a] font-semibold text-lg mb-3">Playlists</h3>
+          <h3 className="text-main font-semibold text-lg mb-3">Playlists</h3>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
             {matchedPlaylists.map(pl => (
               <button
                 key={pl.id}
                 onClick={() => setView('playlist', pl.id)}
-                className="flex items-center gap-3 bg-[#f5f5f5] hover:bg-[#fce4ec] rounded-lg overflow-hidden transition-all"
+                className="flex items-center gap-3 bg-surface hover:bg-accent-surface rounded-lg overflow-hidden transition-all"
               >
                 <div className="w-14 h-14 flex-shrink-0">
                   {pl.coverUrl
                     ? <img src={pl.coverUrl} alt={pl.name} className="w-full h-full object-cover" />
-                    : <div className="w-full h-full bg-[#e0e0e0] flex items-center justify-center"><Music2 size={20} className="text-white/50" /></div>
+                    : <div className="w-full h-full bg-track flex items-center justify-center"><Music2 size={20} className="text-white/50" /></div>
                   }
                 </div>
-                <span className="text-[#1a1a1a] font-semibold text-sm truncate pr-2">{pl.name}</span>
+                <span className="text-main font-semibold text-sm truncate pr-2">{pl.name}</span>
               </button>
             ))}
           </div>
@@ -111,7 +111,7 @@ export default function SearchView({ query }: { query: string }) {
 
       {matchedTracks.length > 0 ? (
         <section>
-          <h3 className="text-[#1a1a1a] font-semibold text-lg mb-3">Canciones</h3>
+          <h3 className="text-main font-semibold text-lg mb-3">Canciones</h3>
           <VirtualizedTrackList
             tracks={matchedTracks}
             scrollRef={scrollRef}
@@ -121,8 +121,8 @@ export default function SearchView({ query }: { query: string }) {
         </section>
       ) : (
         <div className="flex flex-col items-center py-12 gap-3">
-          <Music2 size={48} className="text-[#999999]" />
-          <p className="text-[#666666]">No se encontraron resultados para "{query}"</p>
+          <Music2 size={48} className="text-subtle" />
+          <p className="text-muted">No se encontraron resultados para "{query}"</p>
         </div>
       )}
     </div>

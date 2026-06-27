@@ -52,20 +52,20 @@ const TrackRow = memo(function TrackRow({
       onTouchEnd={handleTouchEnd}
       onTouchMove={handleTouchEnd}
       className={`track-row group grid gap-4 px-4 py-2 rounded-lg cursor-pointer transition-colors items-center w-full ${
-        isCurrent ? 'bg-[#fce4ec]' : 'hover:bg-black/5'
+        isCurrent ? 'bg-accent-surface' : 'hover:bg-black/5'
       }`}
     >
-      <div className="flex items-center justify-center w-5 h-5">
+      <div className="max-md:hidden flex items-center justify-center w-5 h-5">
         {isCurrent && isPlaying ? (
           <NowPlayingBars />
         ) : (
           <>
-            <span className={`text-sm group-hover:hidden ${isCurrent ? 'text-[#e91e63]' : 'text-[#666666]'}`}>
+            <span className={`text-sm group-hover:hidden ${isCurrent ? 'text-accent' : 'text-muted'}`}>
               {isCurrent ? '♪' : index + 1}
             </span>
             <button
               onClick={(e) => { e.stopPropagation(); onPlay(); }}
-              className="hidden group-hover:flex items-center justify-center text-[#1a1a1a]"
+              className="hidden group-hover:flex items-center justify-center text-main"
             >
               {isCurrent && isPlaying ? <Pause size={14} fill="currentColor" /> : <Play size={14} fill="currentColor" />}
             </button>
@@ -78,38 +78,38 @@ const TrackRow = memo(function TrackRow({
           {track.coverUrl ? (
             <img src={track.coverUrl} alt={track.title} className="w-full h-full object-cover" />
           ) : (
-            <div className="w-full h-full bg-[#f5f5f5] flex items-center justify-center">
-              <Music2 size={14} className="text-[#999999]" />
+            <div className="w-full h-full bg-surface flex items-center justify-center">
+              <Music2 size={14} className="text-subtle" />
             </div>
           )}
         </div>
         <div className="min-w-0">
-          <p className={`text-sm font-semibold truncate ${isCurrent ? 'text-[#e91e63]' : 'text-[#1a1a1a]'}`}>
+          <p className={`text-sm font-semibold truncate ${isCurrent ? 'text-accent' : 'text-main'}`}>
             {track.title}
           </p>
-          <p className="text-xs text-[#666666] truncate">{track.artist}</p>
+          <p className="text-xs text-muted truncate">{track.artist}</p>
         </div>
       </div>
 
-      <p className="hidden md:block text-sm text-[#666666] truncate hover:text-[#1a1a1a] transition-colors">
+      <p className="hidden md:block text-sm text-muted truncate hover:text-main transition-colors">
         {track.album}
       </p>
 
-      <p className="hidden lg:block text-sm text-[#666666]">
+      <p className="hidden lg:block text-sm text-muted">
         {formatDate(track.addedAt)}
       </p>
 
       <div className="flex items-center justify-end gap-3">
         <button
           onClick={(e) => { e.stopPropagation(); onLike(); }}
-          className={`opacity-0 group-hover:opacity-100 p-1.5 rounded-full hover:bg-black/5 transition-all ${track.isLiked ? '!opacity-100 text-[#e91e63]' : 'text-[#666666] hover:text-[#1a1a1a]'}`}
+          className={`max-md:hidden opacity-0 group-hover:opacity-100 p-1.5 rounded-full hover:bg-black/5 transition-all ${track.isLiked ? '!opacity-100 text-accent' : 'text-muted hover:text-main'}`}
         >
           <Heart size={15} fill={track.isLiked ? 'currentColor' : 'none'} />
         </button>
-        <span className="text-sm text-[#666666] tabular-nums">{formatDuration(track.duration)}</span>
+        <span className="max-md:hidden text-sm text-muted tabular-nums">{formatDuration(track.duration)}</span>
         <button
           onClick={onMoreClick}
-          className="opacity-0 group-hover:opacity-100 p-1.5 rounded-full hover:bg-black/5 text-[#666666] hover:text-[#1a1a1a] transition-all"
+          className="p-1.5 rounded-full hover:bg-black/5 text-muted hover:text-main transition-all max-md:opacity-100 md:opacity-0 md:group-hover:opacity-100"
         >
           <MoreHorizontal size={15} />
         </button>
@@ -124,7 +124,7 @@ function NowPlayingBars() {
       {[1, 2, 3].map(i => (
         <div
           key={i}
-          className="w-[3px] bg-[#e91e63] rounded-sm animate-pulse"
+          className="w-[3px] bg-accent rounded-sm animate-pulse"
           style={{
             height: `${40 + i * 20}%`,
             animationDelay: `${i * 0.15}s`,
@@ -220,10 +220,10 @@ export default function PlaylistView() {
             )}
           </div>
           <div className="flex-1 min-w-0 text-center sm:text-left">
-            <p className="text-[#1a1a1a]/50 text-xs font-bold uppercase tracking-widest mb-1">Playlist</p>
-            <h1 className="text-[#1a1a1a] font-black text-3xl sm:text-5xl mb-4 leading-tight">{playlist.name}</h1>
-            <div className="flex items-center justify-center sm:justify-start gap-1 text-[#666666] text-sm">
-              <span className="font-semibold text-[#1a1a1a]">Munify</span>
+            <p className="text-main/50 text-xs font-bold uppercase tracking-widest mb-1">Playlist</p>
+            <h1 className="text-main font-black text-3xl sm:text-5xl mb-4 leading-tight">{playlist.name}</h1>
+            <div className="flex items-center justify-center sm:justify-start gap-1 text-muted text-sm">
+              <span className="font-semibold text-main">Munify</span>
               <span>•</span>
               <span>{playlistTracks.length} canciones</span>
               <span>•</span>
@@ -235,7 +235,7 @@ export default function PlaylistView() {
         <div className="flex items-center gap-4 mt-4">
           <button
             onClick={handlePlayAll}
-            className="w-14 h-14 bg-[#e91e63] rounded-full flex items-center justify-center hover:scale-105 transition-all shadow-lg hover:bg-[#ff4081]"
+            className="w-14 h-14 bg-accent rounded-full flex items-center justify-center hover:scale-105 transition-all shadow-lg hover:bg-accent-light"
           >
             {isCurrentPlaylist && isPlaying
               ? <Pause size={24} fill="white" className="text-white" />
@@ -244,7 +244,7 @@ export default function PlaylistView() {
           </button>
           <button
             onClick={toggleShuffle}
-            className={`p-3 rounded-full transition-colors hover:bg-black/5 ${shuffle ? 'text-[#e91e63]' : 'text-[#666666] hover:text-[#1a1a1a]'}`}
+            className={`p-3 rounded-full transition-colors hover:bg-black/5 ${shuffle ? 'text-accent' : 'text-muted hover:text-main'}`}
           >
             <Shuffle size={24} />
           </button>
@@ -253,7 +253,7 @@ export default function PlaylistView() {
 
       {/* Track List */}
       <div className="px-4 md:px-6 pb-8 bg-gradient-to-b from-white/80 to-white">
-        <div className="track-header grid gap-4 px-4 py-2 mb-2 text-[#666666] text-xs font-semibold uppercase tracking-wider border-b border-black/10">
+        <div className="track-header grid gap-4 px-4 py-2 mb-2 text-muted text-xs font-semibold uppercase tracking-wider border-b border-black/10">
           <span className="text-center">#</span>
           <span>Título</span>
           <span className="hidden md:block">Álbum</span>
@@ -265,8 +265,8 @@ export default function PlaylistView() {
 
         {playlistTracks.length === 0 ? (
           <div className="flex flex-col items-center py-16 gap-3">
-            <Music2 size={40} className="text-[#999999]" />
-            <p className="text-[#666666]">Esta playlist está vacía</p>
+            <Music2 size={40} className="text-subtle" />
+            <p className="text-muted">Esta playlist está vacía</p>
           </div>
         ) : (
           <VirtualizedTrackList
@@ -287,14 +287,14 @@ export default function PlaylistView() {
         >
           <button
             onClick={() => { toggleLike(contextMenu.track.id); setContextMenu(null); }}
-            className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[#1a1a1a] hover:bg-pink-500/10 transition-colors"
+            className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-main hover:bg-pink-500/10 transition-colors"
           >
-            <Heart size={15} className={contextMenu.track.isLiked ? 'text-[#e91e63]' : ''} fill={contextMenu.track.isLiked ? 'currentColor' : 'none'} />
+            <Heart size={15} className={contextMenu.track.isLiked ? 'text-accent' : ''} fill={contextMenu.track.isLiked ? 'currentColor' : 'none'} />
             {contextMenu.track.isLiked ? 'Quitar de Favoritos' : 'Añadir a Favoritos'}
           </button>
           <button
             onClick={() => { playTrack(contextMenu.track, playlistTracks); setContextMenu(null); }}
-            className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[#1a1a1a] hover:bg-pink-500/10 transition-colors"
+            className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-main hover:bg-pink-500/10 transition-colors"
           >
             <Play size={15} />
             Reproducir ahora
@@ -304,7 +304,7 @@ export default function PlaylistView() {
               <div className="border-t border-black/5 my-1" />
               <button
                 onClick={() => setShowPlaylistSubmenu(true)}
-                className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[#1a1a1a] hover:bg-pink-500/10 transition-colors"
+                className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-main hover:bg-pink-500/10 transition-colors"
               >
                 <ListMusic size={15} />
                 Añadir a Playlist
@@ -312,7 +312,7 @@ export default function PlaylistView() {
               {contextMenu.track.playlistId && contextMenu.track.playlistId !== activePlaylistId && (
                 <button
                   onClick={() => { addTrackToPlaylist(contextMenu.track.id, activePlaylistId!); setContextMenu(null); }}
-                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[#1a1a1a] hover:bg-pink-500/10 transition-colors"
+                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-main hover:bg-pink-500/10 transition-colors"
                 >
                   <Plus size={15} />
                   Mover a esta playlist
@@ -320,7 +320,7 @@ export default function PlaylistView() {
               )}
               <button
                 onClick={() => { removeTrackFromPlaylist(contextMenu.track.id); setContextMenu(null); }}
-                className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[#1a1a1a] hover:bg-pink-500/10 transition-colors"
+                className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-main hover:bg-pink-500/10 transition-colors"
               >
                 <Trash2 size={15} className="text-red-400" />
                 <span className="text-red-400">Quitar de playlist</span>
@@ -337,9 +337,9 @@ export default function PlaylistView() {
           </button>
           <div className="border-t border-black/5 my-1" />
           <div className="px-4 py-2">
-            <p className="text-xs text-[#999999]">{formatDuration(contextMenu.track.duration)}</p>
-            {contextMenu.track.year && <p className="text-xs text-[#999999]">{contextMenu.track.year}</p>}
-            {contextMenu.track.genre && <p className="text-xs text-[#999999]">{contextMenu.track.genre}</p>}
+            <p className="text-xs text-subtle">{formatDuration(contextMenu.track.duration)}</p>
+            {contextMenu.track.year && <p className="text-xs text-subtle">{contextMenu.track.year}</p>}
+            {contextMenu.track.genre && <p className="text-xs text-subtle">{contextMenu.track.genre}</p>}
           </div>
         </div>
       )}
@@ -351,7 +351,7 @@ export default function PlaylistView() {
           style={{ top: contextMenu.y, left: contextMenu.x }}
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="px-4 py-2 text-xs text-[#666666] font-semibold uppercase tracking-wider">Seleccionar playlist</div>
+          <div className="px-4 py-2 text-xs text-muted font-semibold uppercase tracking-wider">Seleccionar playlist</div>
           {playlists.map(pl => (
             <button
               key={pl.id}
@@ -360,16 +360,16 @@ export default function PlaylistView() {
                 setContextMenu(null);
                 setShowPlaylistSubmenu(false);
               }}
-              className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[#1a1a1a] hover:bg-pink-500/10 transition-colors"
+              className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-main hover:bg-pink-500/10 transition-colors"
             >
-              <ListMusic size={15} className="text-[#666666]" />
+              <ListMusic size={15} className="text-muted" />
               {pl.name}
             </button>
           ))}
           <div className="border-t border-black/5 my-1" />
           <button
             onClick={() => setShowPlaylistSubmenu(false)}
-            className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[#666666] hover:text-[#1a1a1a] hover:bg-pink-500/10 transition-colors"
+            className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-muted hover:text-main hover:bg-pink-500/10 transition-colors"
           >
             Volver
           </button>

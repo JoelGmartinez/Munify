@@ -1,5 +1,22 @@
 @import "tailwindcss";
 
+@theme {
+  --color-accent: #e91e63;
+  --color-accent-light: #ff4081;
+  --color-accent-dark: #c2185b;
+  --color-accent-surface: #fce4ec;
+  --color-accent-bg: #fff5f7;
+  --color-main: #1a1a1a;
+  --color-muted: #666666;
+  --color-subtle: #999999;
+  --color-inactive: #bbbbbb;
+  --color-surface: #f5f5f5;
+  --color-canvas: #fafafa;
+  --color-accent-hover: #f8bbd0;
+  --color-track: #e0e0e0;
+  --color-scrollbar: #cccccc;
+}
+
 /* Scrollbar hide */
 .scrollbar-hide {
   -ms-overflow-style: none;
@@ -17,11 +34,11 @@
   background: transparent;
 }
 .scrollbar-thin::-webkit-scrollbar-thumb {
-  background: #e0e0e0;
+  background: var(--color-track);
   border-radius: 3px;
 }
 .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-  background: #cccccc;
+  background: var(--color-scrollbar);
 }
 
 /* Track row grid - Desktop */
@@ -72,7 +89,7 @@ input[type="range"]::-webkit-slider-thumb {
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background: #e91e63;
+  background: var(--color-accent);
   cursor: pointer;
   transition: opacity 0.1s;
 }
@@ -81,7 +98,7 @@ input[type="range"]::-moz-range-thumb {
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background: #e91e63;
+  background: var(--color-accent);
   cursor: pointer;
   border: none;
 }
@@ -105,7 +122,7 @@ html, body {
 }
 
 body {
-  background: #ffffff;
+  background: white;
   font-family: 'Circular', 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
@@ -127,7 +144,7 @@ body.modal-open {
 
 /* Gradient overlays */
 .gradient-overlay {
-  background: linear-gradient(to bottom, transparent 0%, #ffffff 100%);
+  background: linear-gradient(to bottom, transparent 0%, white 100%);
 }
 
 /* Hover play button appear */
@@ -163,5 +180,9 @@ button, a, .clickable {
 }
 
 .toast-enter {
+  animation: slideUp 0.3s ease-out;
+}
+
+.animate-slide-up {
   animation: slideUp 0.3s ease-out;
 }

@@ -46,7 +46,7 @@ export default function App() {
             {[1, 2, 3, 4, 5].map(i => (
               <div
                 key={i}
-                className="w-[6px] bg-[#e91e63] rounded-full"
+                className="w-[6px] bg-accent rounded-full"
                 style={{
                   animation: `soundbar ${0.5 + i * 0.1}s ease-in-out infinite`,
                   animationDelay: `${i * 0.1}s`,
@@ -55,7 +55,7 @@ export default function App() {
               />
             ))}
           </div>
-          <p className="text-[#e91e63] font-bold text-lg tracking-wide">Munify</p>
+          <p className="text-accent font-bold text-lg tracking-wide">Munify</p>
         </div>
       </div>
     );
@@ -86,13 +86,13 @@ export default function App() {
         </aside>
 
         {/* Main Content Area */}
-        <main className="flex-1 flex flex-col min-w-0 overflow-hidden bg-[#fafafa]">
+        <main className="flex-1 flex flex-col min-w-0 overflow-hidden bg-canvas">
           {/* Top Bar */}
           <div className="relative">
             {/* Mobile Menu Button */}
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="md:hidden absolute left-3 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-[#e91e63] text-white hover:bg-[#ff4081] transition-colors"
+              className="md:hidden absolute left-3 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-accent text-white hover:bg-accent-light transition-colors"
             >
               {sidebarOpen ? <X size={18} /> : <Menu size={18} />}
             </button>
@@ -105,10 +105,20 @@ export default function App() {
               {renderMainContent()}
             </div>
 
-            {/* Queue Panel */}
+            {/* Queue Panel — Desktop sidebar */}
             {showQueue && (
               <div className="hidden md:flex w-72 flex-shrink-0">
                 <QueuePanel />
+              </div>
+            )}
+
+            {/* Queue Panel — Mobile bottom sheet */}
+            {showQueue && (
+              <div className="fixed inset-0 z-50 md:hidden">
+                <div className="absolute inset-0 bg-black/40" onClick={() => usePlayerStore.getState().setShowQueue(false)} />
+                <div className="absolute bottom-0 left-0 right-0 max-h-[70vh] rounded-t-2xl overflow-hidden shadow-2xl animate-slide-up">
+                  <QueuePanel />
+                </div>
               </div>
             )}
           </div>
@@ -117,7 +127,7 @@ export default function App() {
 
       {/* Syncing indicator */}
       {isSyncing && (
-        <div className="flex items-center justify-center gap-2 py-1.5 bg-[#e91e63] text-white text-xs font-semibold">
+        <div className="flex items-center justify-center gap-2 py-1.5 bg-accent text-white text-xs font-semibold">
           <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
           Sincronizando biblioteca...
         </div>

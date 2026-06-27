@@ -39,16 +39,16 @@ const TrackRow = memo(function TrackRow({
       onTouchEnd={handleTouchEnd}
       onTouchMove={handleTouchEnd}
       className={`group flex items-center gap-4 px-4 py-2 rounded-lg cursor-pointer transition-colors w-full ${
-        isCurrent ? 'bg-[#fce4ec]' : 'hover:bg-black/5'
+        isCurrent ? 'bg-accent-surface' : 'hover:bg-black/5'
       }`}
     >
-      <div className="w-5 text-center">
+      <div className="max-md:hidden w-5 text-center">
         {isCurrent && isPlaying ? (
-          <span className="text-[#e91e63] text-sm">♪</span>
+          <span className="text-accent text-sm">♪</span>
         ) : (
           <button
             onClick={(e) => { e.stopPropagation(); onPlay(); }}
-            className="opacity-0 group-hover:opacity-100 text-[#1a1a1a]"
+            className="opacity-0 group-hover:opacity-100 text-main"
           >
             <Play size={14} fill="currentColor" />
           </button>
@@ -58,35 +58,35 @@ const TrackRow = memo(function TrackRow({
         {track.coverUrl ? (
           <img src={track.coverUrl} alt={track.title} className="w-full h-full object-cover" />
         ) : (
-          <div className="w-full h-full bg-[#f5f5f5] flex items-center justify-center">
-            <Music2 size={14} className="text-[#999999]" />
+          <div className="w-full h-full bg-surface flex items-center justify-center">
+            <Music2 size={14} className="text-subtle" />
           </div>
         )}
       </div>
       <div className="flex-1 min-w-0">
-        <p className={`text-sm font-semibold truncate ${isCurrent ? 'text-[#e91e63]' : 'text-[#1a1a1a]'}`}>
+        <p className={`text-sm font-semibold truncate ${isCurrent ? 'text-accent' : 'text-main'}`}>
           {track.title}
         </p>
-        <p className="text-xs text-[#666666] truncate">{track.artist} • {track.album}</p>
+        <p className="text-xs text-muted truncate">{track.artist} • {track.album}</p>
       </div>
       {track.playlistId && (
-        <span className="hidden sm:block text-xs text-[#999999]">En playlist</span>
+        <span className="hidden sm:block text-xs text-subtle">En playlist</span>
       )}
       <button
         onClick={(e) => { e.stopPropagation(); onLike(); }}
-        className={`p-1.5 rounded-full hover:bg-black/5 transition-colors ${
-          track.isLiked ? 'text-[#e91e63]' : 'text-[#666666] hover:text-[#1a1a1a] opacity-0 group-hover:opacity-100'
+        className={`max-md:hidden p-1.5 rounded-full hover:bg-black/5 transition-colors ${
+          track.isLiked ? 'text-accent' : 'text-muted hover:text-main opacity-0 group-hover:opacity-100'
         }`}
       >
         <Heart size={14} fill={track.isLiked ? 'currentColor' : 'none'} />
       </button>
       <button
         onClick={onMoreClick}
-        className="opacity-0 group-hover:opacity-100 p-1.5 rounded-full hover:bg-black/5 text-[#666666] hover:text-[#1a1a1a] transition-all"
+        className="p-1.5 rounded-full hover:bg-black/5 text-muted hover:text-main transition-all max-md:opacity-100 md:opacity-0 md:group-hover:opacity-100"
       >
         <MoreHorizontal size={15} />
       </button>
-      <span className="text-xs text-[#666666] tabular-nums flex-shrink-0">{formatDuration(track.duration)}</span>
+      <span className="max-md:hidden text-xs text-muted tabular-nums flex-shrink-0">{formatDuration(track.duration)}</span>
     </div>
   );
 });
@@ -142,17 +142,17 @@ export default function SongsView() {
   ), [currentTrack?.id, isPlaying, handleTrackClick, handleLike, handleContextMenu]);
 
   return (
-    <div ref={scrollRef} className="flex-1 overflow-y-auto bg-gradient-to-b from-[#fff5f7] via-white to-white" onClick={() => { setContextMenu(null); setShowPlaylistSubmenu(false); }}>
+    <div ref={scrollRef} className="flex-1 overflow-y-auto bg-gradient-to-b from-accent-bg via-white to-white" onClick={() => { setContextMenu(null); setShowPlaylistSubmenu(false); }}>
       <div className="px-6 pt-8 pb-6">
-        <h1 className="text-3xl font-black text-[#1a1a1a] mb-2">Todas las Canciones</h1>
-        <p className="text-[#666666] text-sm">{tracks.length} canciones</p>
+        <h1 className="text-3xl font-black text-main mb-2">Todas las Canciones</h1>
+        <p className="text-muted text-sm">{tracks.length} canciones</p>
       </div>
 
       {tracks.length === 0 ? (
         <div className="flex flex-col items-center py-16 gap-4">
-          <Music2 size={48} className="text-[#999999]" />
-          <p className="text-[#666666] text-lg">No hay canciones aún</p>
-          <p className="text-[#999999] text-sm">Sube música desde el menú lateral</p>
+          <Music2 size={48} className="text-subtle" />
+          <p className="text-muted text-lg">No hay canciones aún</p>
+          <p className="text-subtle text-sm">Sube música desde el menú lateral</p>
         </div>
       ) : (
         <div className="px-6 pb-8">
@@ -174,14 +174,14 @@ export default function SongsView() {
         >
           <button
             onClick={() => { toggleLike(contextMenu.track.id); setContextMenu(null); }}
-            className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[#1a1a1a] hover:bg-pink-500/10 transition-colors"
+            className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-main hover:bg-pink-500/10 transition-colors"
           >
-            <Heart size={15} className={contextMenu.track.isLiked ? 'text-[#e91e63]' : ''} fill={contextMenu.track.isLiked ? 'currentColor' : 'none'} />
+            <Heart size={15} className={contextMenu.track.isLiked ? 'text-accent' : ''} fill={contextMenu.track.isLiked ? 'currentColor' : 'none'} />
             {contextMenu.track.isLiked ? 'Quitar de Favoritos' : 'Añadir a Favoritos'}
           </button>
           <button
             onClick={() => { playTrack(contextMenu.track, sortedTracks); setContextMenu(null); }}
-            className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[#1a1a1a] hover:bg-pink-500/10 transition-colors"
+            className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-main hover:bg-pink-500/10 transition-colors"
           >
             <Play size={15} />
             Reproducir ahora
@@ -191,7 +191,7 @@ export default function SongsView() {
               <div className="border-t border-black/5 my-1" />
               <button
                 onClick={() => setShowPlaylistSubmenu(true)}
-                className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[#1a1a1a] hover:bg-pink-500/10 transition-colors"
+                className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-main hover:bg-pink-500/10 transition-colors"
               >
                 <ListMusic size={15} />
                 Añadir a Playlist
@@ -208,9 +208,9 @@ export default function SongsView() {
           </button>
           <div className="border-t border-black/5 my-1" />
           <div className="px-4 py-2">
-            <p className="text-xs text-[#999999]">{formatDuration(contextMenu.track.duration)}</p>
-            {contextMenu.track.year && <p className="text-xs text-[#999999]">{contextMenu.track.year}</p>}
-            {contextMenu.track.genre && <p className="text-xs text-[#999999]">{contextMenu.track.genre}</p>}
+            <p className="text-xs text-subtle">{formatDuration(contextMenu.track.duration)}</p>
+            {contextMenu.track.year && <p className="text-xs text-subtle">{contextMenu.track.year}</p>}
+            {contextMenu.track.genre && <p className="text-xs text-subtle">{contextMenu.track.genre}</p>}
           </div>
         </div>
       )}
@@ -222,7 +222,7 @@ export default function SongsView() {
           style={{ top: contextMenu.y, left: contextMenu.x }}
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="px-4 py-2 text-xs text-[#666666] font-semibold uppercase tracking-wider">Seleccionar playlist</div>
+          <div className="px-4 py-2 text-xs text-muted font-semibold uppercase tracking-wider">Seleccionar playlist</div>
           {playlists.map(pl => (
             <button
               key={pl.id}
@@ -231,16 +231,16 @@ export default function SongsView() {
                 setContextMenu(null);
                 setShowPlaylistSubmenu(false);
               }}
-              className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[#1a1a1a] hover:bg-pink-500/10 transition-colors"
+              className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-main hover:bg-pink-500/10 transition-colors"
             >
-              <ListMusic size={15} className="text-[#666666]" />
+              <ListMusic size={15} className="text-muted" />
               {pl.name}
             </button>
           ))}
           <div className="border-t border-black/5 my-1" />
           <button
             onClick={() => setShowPlaylistSubmenu(false)}
-            className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[#666666] hover:text-[#1a1a1a] hover:bg-pink-500/10 transition-colors"
+            className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-muted hover:text-main hover:bg-pink-500/10 transition-colors"
           >
             Volver
           </button>

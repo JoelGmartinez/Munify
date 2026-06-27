@@ -42,31 +42,31 @@ export default function HomeView() {
     .slice(0, 10);
 
   return (
-    <div className="flex-1 overflow-y-auto bg-gradient-to-b from-[#fff5f7] via-white to-white">
+    <div className="flex-1 overflow-y-auto bg-gradient-to-b from-accent-bg via-white to-white">
       <div className="px-6 pt-8 pb-4">
-        <h1 className="text-3xl font-black text-[#1a1a1a] mb-6">{getGreeting()}</h1>
+        <h1 className="text-3xl font-black text-main mb-6">{getGreeting()}</h1>
 
         {tracks.length > 0 && (
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-8">
             <button onClick={() => setView('songs')}
-              className="group flex items-center gap-3 bg-[#f5f5f5] hover:bg-[#fce4ec] rounded-lg overflow-hidden transition-all">
-              <div className="w-16 h-16 flex-shrink-0 bg-gradient-to-br from-[#e91e63] to-[#ff4081] flex items-center justify-center">
+              className="group flex items-center gap-3 bg-surface hover:bg-accent-surface rounded-lg overflow-hidden transition-all">
+              <div className="w-16 h-16 flex-shrink-0 bg-gradient-to-br from-accent to-accent-light flex items-center justify-center">
                 <List size={24} className="text-white" />
               </div>
-              <span className="text-[#1a1a1a] font-bold text-sm truncate pr-2">Todas las Canciones</span>
+              <span className="text-main font-bold text-sm truncate pr-2">Todas las Canciones</span>
             </button>
             {likedTracks.length > 0 && (
               <button onClick={() => setView('liked')}
-                className="group flex items-center gap-3 bg-[#fce4ec] hover:bg-[#f8bbd0] rounded-lg overflow-hidden transition-all">
-                <div className="w-16 h-16 flex-shrink-0 bg-gradient-to-br from-[#e91e63] to-[#ff4081] flex items-center justify-center">
+                className="group flex items-center gap-3 bg-accent-surface hover:bg-accent-hover rounded-lg overflow-hidden transition-all">
+                <div className="w-16 h-16 flex-shrink-0 bg-gradient-to-br from-accent to-accent-light flex items-center justify-center">
                   <Heart size={24} className="text-white" fill="white" />
                 </div>
-                <span className="text-[#1a1a1a] font-bold text-sm truncate pr-2">Canciones favoritas</span>
+                <span className="text-main font-bold text-sm truncate pr-2">Canciones favoritas</span>
               </button>
             )}
             {playlists.slice(0, likedTracks.length > 0 ? 4 : 5).map(pl => (
               <button key={pl.id} onClick={() => setView('playlist', pl.id)}
-                className="group flex items-center gap-3 bg-[#f5f5f5] hover:bg-[#fce4ec] rounded-lg overflow-hidden transition-all">
+                className="group flex items-center gap-3 bg-surface hover:bg-accent-surface rounded-lg overflow-hidden transition-all">
                 <div className="w-16 h-16 flex-shrink-0">
                   {pl.coverUrl ? (
                     <img src={pl.coverUrl} alt={pl.name} className="w-full h-full object-cover" />
@@ -76,7 +76,7 @@ export default function HomeView() {
                     </div>
                   )}
                 </div>
-                <span className="text-[#1a1a1a] font-bold text-sm truncate pr-2">{pl.name}</span>
+                <span className="text-main font-bold text-sm truncate pr-2">{pl.name}</span>
               </button>
             ))}
           </div>
@@ -84,15 +84,15 @@ export default function HomeView() {
 
         {tracks.length === 0 && (
           <div className="flex flex-col items-center justify-center py-24 gap-6">
-            <div className="p-6 rounded-full bg-[#f5f5f5]">
-              <Music2 size={48} className="text-[#666666]" />
+            <div className="p-6 rounded-full bg-surface">
+              <Music2 size={48} className="text-muted" />
             </div>
             <div className="text-center">
-              <h2 className="text-[#1a1a1a] text-2xl font-bold mb-2">Tu biblioteca está vacía</h2>
-              <p className="text-[#666666] max-w-sm">Sube tu música para empezar a escuchar. Soporta MP3, FLAC, WAV, M4A y más.</p>
+              <h2 className="text-main text-2xl font-bold mb-2">Tu biblioteca está vacía</h2>
+              <p className="text-muted max-w-sm">Sube tu música para empezar a escuchar. Soporta MP3, FLAC, WAV, M4A y más.</p>
             </div>
             <button onClick={() => setShowUploadModal(true)}
-              className="flex items-center gap-2 px-8 py-3 bg-[#e91e63] hover:bg-[#ff4081] text-white font-bold rounded-full transition-colors text-sm">
+              className="flex items-center gap-2 px-8 py-3 bg-accent hover:bg-accent-light text-white font-bold rounded-full transition-colors text-sm">
               <Upload size={18} />
               Añadir Música
             </button>
@@ -103,7 +103,7 @@ export default function HomeView() {
       {playlists.length > 0 && (
         <section className="px-6 pb-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-[#1a1a1a] font-bold text-xl">Tus Playlists</h2>
+            <h2 className="text-main font-bold text-xl">Tus Playlists</h2>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
             {playlists.map(pl => {
@@ -111,7 +111,7 @@ export default function HomeView() {
               const isPlaying = currentTrack?.playlistId === pl.id;
               return (
                 <div key={pl.id}
-                  className="group relative bg-[#fafafa] hover:bg-[#f5f5f5] rounded-xl p-4 cursor-pointer transition-all duration-300 border border-black/5"
+                  className="group relative bg-canvas hover:bg-surface rounded-xl p-4 cursor-pointer transition-all duration-300 border border-black/5"
                   onClick={() => setView('playlist', pl.id)}>
                   <div className="relative mb-4 aspect-square rounded-lg overflow-hidden shadow-xl">
                     {pl.coverUrl ? (
@@ -122,16 +122,16 @@ export default function HomeView() {
                       </div>
                     )}
                     <button onClick={(e) => { e.stopPropagation(); playPlaylist(pl); }}
-                      className="absolute bottom-2 right-2 w-10 h-10 bg-[#e91e63] rounded-full flex items-center justify-center shadow-xl
+                      className="absolute bottom-2 right-2 w-10 h-10 bg-accent rounded-full flex items-center justify-center shadow-xl
                         opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 hover:scale-105 transition-all duration-200">
                       <Play size={18} fill="white" className="text-white ml-0.5" />
                     </button>
                   </div>
-                  <p className="text-[#1a1a1a] font-bold text-sm truncate mb-1">{pl.name}</p>
-                  <p className="text-[#666666] text-xs">{plTracks.length} canciones</p>
+                  <p className="text-main font-bold text-sm truncate mb-1">{pl.name}</p>
+                  <p className="text-muted text-xs">{plTracks.length} canciones</p>
                   {isPlaying && (
                     <div className="absolute top-3 left-3">
-                      <div className="flex items-end gap-[2px] h-3 bg-[#e91e63]/80 rounded px-1 py-0.5">
+                      <div className="flex items-end gap-[2px] h-3 bg-accent/80 rounded px-1 py-0.5">
                         {[1,2,3].map(i => (
                           <div key={i} className="w-[2px] bg-white rounded-sm animate-pulse"
                             style={{ height: `${40 + i * 20}%`, animationDelay: `${i * 0.15}s` }} />
@@ -149,8 +149,8 @@ export default function HomeView() {
       {topTracks.length > 0 && topTracks[0].playCount > 0 && (
         <section className="px-6 pb-8">
           <div className="flex items-center gap-2 mb-4">
-            <TrendingUp size={18} className="text-[#e91e63]" />
-            <h2 className="text-[#1a1a1a] font-bold text-xl">Más Escuchadas</h2>
+            <TrendingUp size={18} className="text-accent" />
+            <h2 className="text-main font-bold text-xl">Más Escuchadas</h2>
           </div>
           <RecentTrackList tracks={topTracks} />
         </section>
@@ -172,10 +172,10 @@ function RecentTrackList({ tracks }: { tracks: ReturnType<typeof usePlayerStore.
         const isCurrent = currentTrack?.id === track.id;
         return (
           <div key={track.id} onClick={() => playTrack(track)}
-            className={`group flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer transition-colors ${isCurrent ? 'bg-[#fce4ec]' : 'hover:bg-black/5'}`}>
-            <span className="w-5 text-center text-xs text-[#666666] flex-shrink-0">
+            className={`group flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer transition-colors ${isCurrent ? 'bg-accent-surface' : 'hover:bg-black/5'}`}>
+            <span className="w-5 text-center text-xs text-muted flex-shrink-0">
               {isCurrent && isPlaying ? (
-                <span className="text-[#e91e63]">♪</span>
+                <span className="text-accent">♪</span>
               ) : (
                 <span>{i + 1}</span>
               )}
@@ -184,22 +184,22 @@ function RecentTrackList({ tracks }: { tracks: ReturnType<typeof usePlayerStore.
               {track.coverUrl ? (
                 <img src={track.coverUrl} alt={track.title} className="w-full h-full object-cover" />
               ) : (
-                <div className="w-full h-full bg-[#f5f5f5] flex items-center justify-center">
-                  <Music2 size={14} className="text-[#999999]" />
+                <div className="w-full h-full bg-surface flex items-center justify-center">
+                  <Music2 size={14} className="text-subtle" />
                 </div>
               )}
             </div>
             <div className="flex-1 min-w-0">
-              <p className={`text-sm font-semibold truncate ${isCurrent ? 'text-[#e91e63]' : 'text-[#1a1a1a]'}`}>{track.title}</p>
-              <p className="text-xs text-[#666666] truncate">{track.artist}</p>
+              <p className={`text-sm font-semibold truncate ${isCurrent ? 'text-accent' : 'text-main'}`}>{track.title}</p>
+              <p className="text-xs text-muted truncate">{track.artist}</p>
             </div>
             <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
               <button onClick={() => toggleLike(track.id)}
-                className={`p-1.5 rounded-full hover:bg-black/5 transition-colors ${track.isLiked ? 'text-[#e91e63]' : 'text-[#666666] hover:text-[#1a1a1a]'}`}>
+                className={`p-1.5 rounded-full hover:bg-black/5 transition-colors ${track.isLiked ? 'text-accent' : 'text-muted hover:text-main'}`}>
                 <Heart size={14} fill={track.isLiked ? 'currentColor' : 'none'} />
               </button>
             </div>
-            <span className="text-xs text-[#666666] tabular-nums flex-shrink-0">{formatDuration(track.duration)}</span>
+            <span className="text-xs text-muted tabular-nums flex-shrink-0">{formatDuration(track.duration)}</span>
           </div>
         );
       })}
