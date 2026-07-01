@@ -116,8 +116,8 @@ export default function FileSelectorModal() {
   const progress = uploadState.total > 0 ? (uploadState.current / uploadState.total) * 100 : 0;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-      <div className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden border border-black/10">
+    <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center p-4 bg-black/70 backdrop-blur-sm overflow-y-auto">
+      <div className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl border border-black/10 my-4 max-h-[90dvh] overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-5 border-b border-black/10">
           <h2 className="text-main font-bold text-xl">Añadir Música Local</h2>
@@ -129,7 +129,7 @@ export default function FileSelectorModal() {
           </button>
         </div>
 
-        <div className="p-6 space-y-4">
+        <div className="p-6 space-y-4 overflow-y-auto max-h-[70dvh]">
           {uploadState.status === 'idle' || uploadState.status === 'error' ? (
             <>
               {/* Current folder indicator */}
@@ -137,17 +137,32 @@ export default function FileSelectorModal() {
                 <div className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-accent-surface text-sm text-main border border-accent/20">
                   <Folder size={16} className="text-accent flex-shrink-0" />
                   <span className="flex-1 truncate">{usePlayerStore.getState().directoryPath}</span>
-                  <span className="text-accent text-xs font-semibold flex-shrink-0">Sincronizada</span>
+                  <div className="flex items-center gap-1 flex-shrink-0">
+                    <span className="text-accent text-xs font-semibold">Sincronizada</span>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); usePlayerStore.getState().clearMusicFolder(); }}
+                      className="p-1 rounded-full hover:bg-accent/20 text-accent/60 hover:text-accent transition-colors ml-1"
+                      title="Quitar carpeta"
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
                 </div>
               )}
 
               {/* Folder Picker (Android Chrome) */}
               <button
-                onClick={() => { usePlayerStore.getState().pickMusicFolder(); setShowUploadModal(false); }}
+                onClick={() => {
+                  if (usePlayerStore.getState().directoryPath) {
+                    usePlayerStore.getState().clearMusicFolder();
+                  }
+                  usePlayerStore.getState().pickMusicFolder();
+                  setShowUploadModal(false);
+                }}
                 className="w-full py-4 px-6 rounded-xl bg-gradient-to-r from-accent to-accent-light transition-all text-white font-bold text-lg flex items-center justify-center gap-3 shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98]"
               >
                 <Folder size={24} />
-                Seleccionar carpeta de música
+                {usePlayerStore.getState().directoryPath ? 'Cambiar carpeta de música' : 'Seleccionar carpeta de música'}
               </button>
 
               <p className="text-xs text-subtle text-center -mt-2">

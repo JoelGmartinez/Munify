@@ -328,7 +328,7 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
 
   clearMusicFolder: async () => {
     await deleteDirectoryHandle('music');
-    set({ directoryPath: null });
+    set({ directoryPath: null, localFileMap: {} });
   },
 
   addPlaylist: async (playlist, items) => {

@@ -7,6 +7,7 @@ import { Playlist } from '../types';
 export default function MobileLibraryView() {
   const playlists = usePlayerStore(s => s.playlists);
   const setView = usePlayerStore(s => s.setView);
+  const setShowUploadModal = usePlayerStore(s => s.setShowUploadModal);
   const removePlaylist = usePlayerStore(s => s.removePlaylist);
   const renamePlaylist = usePlayerStore(s => s.renamePlaylist);
   const createEmptyPlaylist = usePlayerStore(s => s.createEmptyPlaylist);
@@ -51,11 +52,12 @@ export default function MobileLibraryView() {
 
       {/* Folder indicator / rescan */}
       {usePlayerStore.getState().directoryPath && (
-        <div className="mx-6 mb-4 flex items-center gap-2 px-4 py-2.5 rounded-lg bg-accent-surface border border-accent/20">
+        <div className="mx-6 mb-4 flex items-center gap-2 px-4 py-2.5 rounded-lg bg-accent-surface border border-accent/20 cursor-pointer"
+          onClick={() => setShowUploadModal(true)}>
           <Folder size={16} className="text-accent flex-shrink-0" />
           <span className="text-sm text-main truncate flex-1">{usePlayerStore.getState().directoryPath}</span>
           <button
-            onClick={() => usePlayerStore.getState().rescanFolder()}
+            onClick={(e) => { e.stopPropagation(); usePlayerStore.getState().rescanFolder(); }}
             className="p-1.5 rounded-full hover:bg-accent/10 text-accent transition-colors"
             title="Rescanear carpeta"
           >

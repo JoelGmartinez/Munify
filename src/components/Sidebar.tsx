@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Home, Heart, Clock, Plus, Music2, ListMusic, ChevronRight, Trash2, Edit2, Check, X, List, RotateCw } from 'lucide-react';
+import { Home, Heart, Clock, Plus, Music2, ListMusic, ChevronRight, Trash2, Edit2, Check, X, List, RotateCw, Folder } from 'lucide-react';
 import { usePlayerStore } from '../store/playerStore';
 import { formatDuration } from '../lib/metadataParser';
 import { useTracks } from '../utils/useTracks';
@@ -192,6 +192,13 @@ export default function Sidebar() {
             title="Rescanear carpeta"
           >
             <RotateCw size={13} />
+          </button>
+          <button
+            onClick={() => setShowUploadModal(true)}
+            className="p-1 rounded hover:bg-black/5 text-muted hover:text-accent transition-colors"
+            title="Cambiar carpeta"
+          >
+            <Folder size={13} />
           </button>
         </div>
       )}

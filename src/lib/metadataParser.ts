@@ -25,9 +25,21 @@ function decodeString(bytes: Uint8Array, encoding: number): string {
         return new TextDecoder('iso-8859-1').decode(bytes);
       }
     }
-    if (encoding === 1 || encoding === 2) {
-      // UTF-16 with BOM
-      return new TextDecoder('utf-16').decode(bytes);
+    if (encoding === 1) {
+      // UTF-16 CON BOM: el BOM indica si es LE o BE, no asumir.
+      if (bytes.length >= 2 && bytes[0] === 0xff && bytes[1] === 0xfe) {
+        return new TextDecoder('utf-16le').decode(bytes.slice(2));
+      }
+      if (bytes.length >= 2 && bytes[0] === 0xfe && bytes[1] === 0xff) {
+        return new TextDecoder('utf-16be').decode(bytes.slice(2));
+      }
+      // Sin BOM detectable (tag mal formado): LE es lo más común como fallback.
+      return new TextDecoder('utf-16le').decode(bytes);
+    }
+    if (encoding === 2) {
+      // UTF-16BE SIN BOM (por especificación ID3v2.4). Este era el caso
+      // que se decodificaba como LE y producía mojibake tipo mandarín.
+      return new TextDecoder('utf-16be').decode(bytes);
     }
     if (encoding === 3) return new TextDecoder('utf-8').decode(bytes);
     return new TextDecoder('utf-8').decode(bytes);
